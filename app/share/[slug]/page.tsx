@@ -24,23 +24,31 @@ type Trip = {
   user: { name: string }
 }
 
-async function getTrip(slug: string): Promise<Trip | null> {
-  const res = await fetch(`http://localhost:3000/api/share/${slug}`, {
-    cache: "no-store",
-  })
+import { prisma } from "@/app/lib/db"
 
-  if (!res.ok) return null
-  return res.json()
-}
 
 export default async function SharePage({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>  // ← Promise, not plain object
 }) {
-  const trip = await getTrip(params.slug)
+  const { slug } = await params  // ← await it
 
-  if (!trip) notFound()
+  const trip = await prisma.trip.findUnique({
+    where: { publicSlug: slug },
+    include: {
+      user: true,
+      stops: {
+        include: {
+          activities: true,
+        },
+      },
+    },
+  })
+
+  if (!trip || !trip.isPublic) notFound()
+  // rest of your page code unchanged
+
 
   const total = trip.stops
     .flatMap((s) => s.activities)
