@@ -5,13 +5,13 @@ import { getUserFromRequest } from "@/app/lib/auth"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const stop = await prisma.stop.findUnique({
-    where: { id: params.id },
+    where: { id},
     include: { trip: true },
   })
   if (!stop) return NextResponse.json({ error: "Stop not found" }, { status: 404 })
@@ -25,19 +25,18 @@ export async function POST(
     }
 
     // Order = current count so new activity appends to end
-    const count = await prisma.activity.count({ where: { stopId: params.id } })
+    const count = await prisma.activity.count({ where: { stopId: id} })
 
     const activity = await prisma.activity.create({
-      data: {
-        name,
-        category:      category      || "OTHER",
-        estimatedCost: Number(estimatedCost) || 0,
-        duration:      duration      || null,
-        notes:         notes         || null,
-        order:         count,
-        stopId:        params.id,
-      },
-    })
+  data: {
+    name,
+    category:       category || "OTHER",
+    estimatedCost:  Number(estimatedCost) || 0,
+    durationMinutes: duration ? parseInt(duration) : null, 
+    order:          count,
+    stopId:         id,
+  },
+})
 
     return NextResponse.json(activity, { status: 201 })
   } catch (error) {

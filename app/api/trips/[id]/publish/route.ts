@@ -6,12 +6,13 @@ import { nanoid } from "nanoid"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const trip = await prisma.trip.findUnique({ where: { id: params.id } })
+  const trip = await prisma.trip.findUnique({ where: { id } })
   if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 })
   if (trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
@@ -21,7 +22,7 @@ export async function PATCH(
   const publicSlug = trip.publicSlug || nanoid(6)
 
   const updated = await prisma.trip.update({
-    where: { id: params.id },
+    where: { id },
     data: { isPublic, publicSlug },
   })
 

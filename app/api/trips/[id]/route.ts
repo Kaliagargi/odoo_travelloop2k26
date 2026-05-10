@@ -1,17 +1,17 @@
-// app/api/trips/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/app/lib/db"
 import { getUserFromRequest } from "@/app/lib/auth"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const trip = await prisma.trip.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       stops: {
         orderBy: { order: "asc" },
@@ -32,12 +32,13 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const trip = await prisma.trip.findUnique({ where: { id: params.id } })
+  const trip = await prisma.trip.findUnique({ where: { id } })
   if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 })
   if (trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
@@ -45,7 +46,7 @@ export async function PATCH(
     const data = await request.json()
 
     const updated = await prisma.trip.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(data.title       !== undefined && { title:       data.title }),
         ...(data.description !== undefined && { description: data.description }),
@@ -64,15 +65,16 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const trip = await prisma.trip.findUnique({ where: { id: params.id } })
+  const trip = await prisma.trip.findUnique({ where: { id } })
   if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 })
   if (trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  await prisma.trip.delete({ where: { id: params.id } })
+  await prisma.trip.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }

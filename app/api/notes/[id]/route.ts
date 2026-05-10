@@ -34,18 +34,18 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }:  { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const note = await prisma.note.findUnique({
-    where:   { id: params.id },
+    where:   { id },
     include: { trip: true },
   })
   if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 })
   if (note.trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  await prisma.note.delete({ where: { id: params.id } })
+  await prisma.note.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }

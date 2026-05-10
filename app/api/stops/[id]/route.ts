@@ -41,19 +41,19 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }:  { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const stop = await prisma.stop.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { trip: true },
   })
   if (!stop) return NextResponse.json({ error: "Stop not found" }, { status: 404 })
   if (stop.trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  // Cascade delete removes activities automatically (set in schema)
-  await prisma.stop.delete({ where: { id: params.id } })
+  
+  await prisma.stop.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
