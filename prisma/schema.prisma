@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  phonenumber   String?   @unique   
+  image         String?
+  password      String?   
+  accounts      Account[]
+  trips         Trip[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  
+}
+
+
+model Account {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+
+
+model Trip {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String?
+  startDate   DateTime
+  endDate     DateTime
+  isPublic    Boolean    @default(false)
+  publicSlug  String?    @unique  
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  stops       Stop[]
+  notes       Note[]
+  checklist   ChecklistItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  budget      Float      @default(0)
+  currency    String     @default("INR")
+
+  @@index([userId])
+}
+
+
+model Stop {
+  id          String     @id @default(cuid())
+  cityName    String
+  country     String
+  imageUrl    String?   
+  order       Int        @default(0)  
+  startDate   DateTime?
+  endDate     DateTime?
+  tripId      String
+  trip        Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities  Activity[]
+  notes       Note[]
+  createdAt   DateTime   @default(now())
+
+  @@index([tripId, order])
+}
+
+
+model Activity {
+  id            String   @id @default(cuid())
+  name          String
+  category      Category @default(OTHER)
+  estimatedCost Float    @default(0) 
+  durationMinutes Int? 
+  notes         String?
+  order         Int      @default(0)
+  stopId        String
+  stop          Stop     @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+   @@index([stopId, order])
+}
+
+
+model ChecklistItem {
+  id        String            @id @default(cuid())
+  label     String
+  packed    Boolean           @default(false)
+  category  ChecklistCategory @default(OTHER)
+  tripId    String
+  trip      Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+
+  @@index([tripId])
+}
+
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String
+  stopId    String? 
+  stop      Stop?    @relation(fields: [stopId], references: [id], onDelete: Cascade) 
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+}
+
+
+model City {
+  id          String @id @default(cuid())
+  name        String
+  country     String
+  imageUrl    String
+  description String
+  costPerDay  Float  
+  region      String 
+}
+
+
+enum Category {
+  TRANSPORT
+  STAY
+  FOOD
+  EXCURSION
+  SHOPPING
+  OTHER
+}
+
+enum ChecklistCategory {
+  CLOTHING
+  DOCUMENTS
+  ELECTRONICS
+  TOILETRIES
+  OTHER
+}
