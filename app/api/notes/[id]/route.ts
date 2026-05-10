@@ -1,17 +1,17 @@
-// app/api/notes/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/app/lib/db"
 import { getUserFromRequest } from "@/app/lib/auth"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const note = await prisma.note.findUnique({
-    where:   { id: params.id },
+    where:   { id },
     include: { trip: true },
   })
   if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 })
@@ -19,12 +19,10 @@ export async function PATCH(
 
   try {
     const { content } = await request.json()
-
     const updated = await prisma.note.update({
-      where: { id: params.id },
+      where: { id },
       data:  { content },
     })
-
     return NextResponse.json(updated)
   } catch (error) {
     console.error("PATCH /api/notes/[id] error:", error)
@@ -34,7 +32,8 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }:  { params: Promise<{ id: string }> }) {
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

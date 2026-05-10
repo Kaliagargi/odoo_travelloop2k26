@@ -17,7 +17,7 @@ export default function BuildPage() {
   const [cities, setCities]       = useState<City[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [addingTo, setAddingTo]   = useState<string | null>(null)
-  const [actForm, setActForm]     = useState({ name: "", category: "OTHER", estimatedCost: "", duration: "" })
+  const [actForm, setActForm]     = useState({ name: "", category: "OTHER", estimatedCost: "", durationMinutes: "" })
 
   const fetchTrip = useCallback(async () => {
     const res = await fetch(`/api/trips/${id}`)
@@ -62,7 +62,7 @@ export default function BuildPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...actForm, estimatedCost: Number(actForm.estimatedCost) || 0 }),
     })
-    setActForm({ name: "", category: "OTHER", estimatedCost: "", duration: "" })
+    setActForm({ name: "", category: "OTHER", estimatedCost: "", durationMinutes: "" })
     setAddingTo(null)
     fetchTrip()
   }
@@ -223,7 +223,7 @@ export default function BuildPage() {
                         />
                         <input
                           placeholder="Duration (e.g. 2 hours)"
-                          value={actForm.duration}
+                          value={actForm.durationMinutes}
                           onChange={e => setActForm(p => ({...p, duration: e.target.value}))}
                           className="border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
                         />

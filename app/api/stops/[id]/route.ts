@@ -5,13 +5,14 @@ import { getUserFromRequest } from "@/app/lib/auth"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const stop = await prisma.stop.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { trip: true },
   })
   if (!stop) return NextResponse.json({ error: "Stop not found" }, { status: 404 })
@@ -21,7 +22,7 @@ export async function PATCH(
     const data = await request.json()
 
     const updated = await prisma.stop.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(data.cityName  !== undefined && { cityName:  data.cityName }),
         ...(data.country   !== undefined && { country:   data.country }),
@@ -41,7 +42,8 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }:  { params: Promise<{ id: string }> }) {
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -53,7 +55,6 @@ export async function DELETE(
   if (!stop) return NextResponse.json({ error: "Stop not found" }, { status: 404 })
   if (stop.trip.userId !== user.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  
   await prisma.stop.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }

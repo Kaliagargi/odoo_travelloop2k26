@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
-type Activity = { id: string; name: string; category: string; estimatedCost: number; duration?: string }
+type Activity = { id: string; name: string; category: string; estimatedCost: number; durationMinutes?: string }
 type Stop     = { id: string; cityName: string; country: string; imageUrl?: string; activities: Activity[] }
 type Trip     = { id: string; title: string; description: string; startDate: string; endDate: string; isPublic: boolean; publicSlug: string; stops: Stop[] }
 
@@ -107,7 +107,7 @@ export default function TripViewPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-gray-400 text-xs border-b">
-                        <th className="text-left pb-2">Activity</th>
+                        <th className="text-left pb-2">Excursion</th>
                         <th className="text-left pb-2">Category</th>
                         <th className="text-left pb-2">Duration</th>
                         <th className="text-right pb-2">Cost</th>
@@ -122,7 +122,7 @@ export default function TripViewPage() {
                               {act.category}
                             </span>
                           </td>
-                          <td className="py-2 text-gray-400">{act.duration || "—"}</td>
+                          <td className="py-2 text-gray-400">{act.durationMinutes ?? "—"}</td>
                           <td className="py-2 text-right font-semibold">
                             ₹{act.estimatedCost.toLocaleString("en-IN")}
                           </td>

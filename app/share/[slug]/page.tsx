@@ -1,18 +1,19 @@
-// No auth — anyone can view this
 import { notFound } from "next/navigation"
 
-type Activity = { id: string; name: string; category: string; estimatedCost: number; duration?: string }
+type Activity = { id: string; name: string; category: string; estimatedCost: number; durationMinutes?: number }
 type Stop     = { id: string; cityName: string; country: string; activities: Activity[] }
 type Trip     = { title: string; description: string; startDate: string; endDate: string; stops: Stop[]; user: { name: string } }
 
 async function getTrip(slug: string): Promise<Trip | null> {
-  const res = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/share/${slug}`, { cache: "no-store" })
+  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const res = await fetch(`${base}/api/share/${slug}`, { cache: "no-store" })
   if (!res.ok) return null
   return res.json()
 }
 
-export default async function SharePage({ params }: { params: { slug: string } }) {
-  const trip = await getTrip(params.slug)
+export default async function SharePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const trip = await getTrip(slug)
   if (!trip) notFound()
 
   const total = trip.stops.flatMap(s => s.activities).reduce((s, a) => s + a.estimatedCost, 0)
@@ -30,7 +31,7 @@ export default async function SharePage({ params }: { params: { slug: string } }
         <div className="bg-white border rounded-2xl p-8 mb-6">
           <h1 className="text-3xl font-bold mb-2">{trip.title}</h1>
           <p className="text-gray-500 mb-4">{trip.description}</p>
-          <div className="flex gap-6 text-sm text-gray-400">
+          <div className="flex gap-6 text-sm text-gray-400 flex-wrap">
             <span>📅 {new Date(trip.startDate).toLocaleDateString()} → {new Date(trip.endDate).toLocaleDateString()}</span>
             <span>✈️ {trip.stops.length} cities</span>
             <span>👤 by {trip.user.name}</span>
@@ -63,18 +64,21 @@ export default async function SharePage({ params }: { params: { slug: string } }
                     <div className="flex gap-3 items-center">
                       <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{act.category}</span>
                       <span className="text-sm">{act.name}</span>
+                      {act.durationMinutes && <span className="text-xs text-gray-400">{act.durationMinutes} min</span>}
                     </div>
                     <span className="text-sm font-semibold">₹{act.estimatedCost.toLocaleString("en-IN")}</span>
                   </div>
                 ))}
-                {stop.activities.length === 0 && <p className="text-sm text-gray-400 text-center py-2">No activities planned</p>}
+                {stop.activities.length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-2">No activities planned</p>
+                )}
               </div>
             </div>
           ))}
         </div>
 
         <p className="text-center text-sm text-gray-400 mt-8">
-          Made with <span className="text-amber-500 font-semibold">Traveloop</span> · Plan your own trip at traveloop.vercel.app
+          Made with <span className="text-amber-500 font-semibold">Traveloop</span>
         </p>
       </div>
     </div>
