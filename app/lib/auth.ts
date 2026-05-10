@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 import { prisma } from "@/app/lib/db";
 import type { User } from "@/types";
-
+import { NextRequest } from "next/server";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
@@ -53,3 +53,13 @@ export const getCurrentUser = async (): Promise<User | null> => {
     return null;
   }
 };
+
+export const getUserFromRequest = (request: NextRequest): { userId: string } | null => {
+  try {
+    const token = request.cookies.get("token")?.value
+    if (!token) return null
+    return verifyToken(token)  // already returns { userId }
+  } catch {
+    return null
+  }
+}
