@@ -4,6 +4,6 @@ import { getCurrentUser } from "@/app/lib/auth"
 export default async function Home() {
   const user = await getCurrentUser()
   if (user) redirect("/dashboard")
-  redirect("/dashboard/route.ts")
+  redirect("/login")
 }
 
