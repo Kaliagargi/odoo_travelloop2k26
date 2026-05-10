@@ -154,7 +154,11 @@ export default function TripViewPage() {
                   <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}>
                     {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
+                 <Tooltip
+                   formatter={(v) =>
+                   v == null ? "" : `₹${Number(v).toLocaleString("en-IN")}`
+                 }
+                    />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
