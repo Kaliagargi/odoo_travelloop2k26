@@ -1,4 +1,4 @@
-# Traveloop — Personalized Travel Planning Made Easy
+# Traveloop Personalized Travel Planning Made Easy
 
 > Plan multi-city trips, track budgets, and share itineraries with anyone.
 **Live Demo:** [traveloop.vercel.app]([https://traveloop.vercel.app](https://drive.google.com/file/d/1DfJKgvPTGTZ9ObrB3Fm9rgGTubIfVLfr/view?usp=sharing))  
